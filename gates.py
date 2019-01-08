@@ -1,11 +1,10 @@
 import numpy as np
-from scipy.linalg import hadamard
 
 def eye(n=1):
     return np.eye(2**n, dtype=complex)
 
 def had():
-    result = hadamard(2, dtype=complex)
+    result = np.array([[1.+0.j, 1.+0.j], [1.+0.j, -1.+0.j]])
     for i in range(2):
         for j in range(2):
             result[i][j] = result[i][j] / np.sqrt(2)
@@ -22,7 +21,7 @@ def zee():
     result[1][1] = -1.+0.j
     return result
 
-def phase(n=1):
+def phase():
     return np.array([[1.+0.j,0.+0.j],[0.+0.j,1.j]], dtype=complex)
 
 def pioneight():
