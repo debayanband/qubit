@@ -46,7 +46,6 @@ class Register(object):
             """
             Applies the two qubit gate designated by FUNC
             onto the qubits at position Q1 and Q2, in that order.
-
             Note that our "lifting" method only works for adjacent qubits.
             Thus, we must do a sequence of swaps before applying our gate,
             and then perform those swaps in reverse order.
@@ -320,4 +319,3 @@ class Register(object):
                     print(guide[1])
                 else:
                     tryOp = r.randint(0, 2**num - 1)
-
