@@ -1,5 +1,8 @@
 import numpy as np
+from numpy import linalg as la
 import gates as g
+import random as r
+import measurement_operators as mops
 
 class Register(object):
     
@@ -68,7 +71,7 @@ class Register(object):
                 applyDouble(func, [q1, q2+1])
                 applyDouble(g.swap, [q2, q2+1])
 
-        def group(i, j, k); # Helper function for applyTriple
+        def group(i, j, k): # Helper function for applyTriple
             """
             Moves qubits at positions I, J, K until they are adjacent.
             """
@@ -76,6 +79,7 @@ class Register(object):
                 actions = [g.eye(1) for i in range(self.numQubits - 4)]
                 actions.insert(i-1, swap())
                 actions.insert(k-3, swap())
+                matrix = g.produceMatrix(actions)
                 applyToQubits(matrix)
                 i = i + 1
                 k = k - 1
@@ -92,7 +96,7 @@ class Register(object):
                     i = i+1
                 return
 
-        def ungroup(i, j, k); # Helper function for applyTriple
+        def ungroup(i, j, k): # Helper function for applyTriple
             """
             From the previously grouped position, swap each qubit back
             to its respective initial position, indices I, J, K.
@@ -103,6 +107,7 @@ class Register(object):
                 actions = [g.eye(1) for i in range(self.numQubits - 4)]
                 actions.insert(l-2, swap())
                 actions.insert(m-2, swap())
+                matrix = g.produceMatrix(actions)
                 applyToQubits(matrix)
                 l = l - 1
                 m = m + 1
@@ -209,10 +214,85 @@ class Register(object):
         else:
             raise ValueError('{} is not a supported gate.'.format(gate))
 
-
-
-    def measure(self, qubit, basis):
-        """ QUBIT is a list of qubits we wish to measure,
-        and BASIS is the set of basis states to which they are measured.
+    def measure(self, qstr):
+        """ 
+        QSTR is the string representing measurements to be done on each
+        qubit. 'Z' is a standard basis measurement, 'X' is a Hadamard
+        basis measurement, 'Y' is a measurement in the Y basis states,
+        and 'I' is the identity (i.e. no measurement on that qubit).
         """
-        pass
+        qstr = ''.join(qstr.split())
+        qstr = qstr.upper()
+        num = qstr.count('X') + qstr.count('Y') + qstr.count('Z')
+        lst = generateLst(num)
+        tryOp = r.randint(0, 2**num - 1)
+        measured = False
+        while not measured:
+            guide = lst[tryOp]
+            if isinstance(guide, str):
+                index = 0
+                matrixLst = []
+                for i in range(self.numQubits):
+                    if qstr[i] == 'X':
+                        if guide[index] == '0':
+                            matrixLst.append(mops.plus())
+                            index += 1
+                        else: 
+                            matrixLst.append(mops.minus())
+                            index += 1
+                    elif qstr[i] == 'Y':
+                        if guide[index] == '0':
+                            matrixLst.append(mops.pos_y())
+                            index += 1
+                        else:
+                            matrixLst.append(mops.neg_y())
+                            index += 1
+                    elif qstr[i] == 'Z':
+                        if guide[index] == '0':
+                            matrixLst.append(mops.zero())
+                            index += 1
+                        else:
+                            matrixLst.append(mops.one())
+                            index += 1
+                    else:
+                        matrixLst.append(g.eye(1))
+                measureMatrix = g.produceMatrix(matrixLst)
+                collapsed = measureMatrix @ self.amplitudes
+                lst[tryOp] = collapsed
+                prob = (la.norm(collapsed))**2
+                if r.random() <= prob:
+                    for i in range(self.numQubits):
+                        collapsed[i] = collapsed[i] / prob
+                    self.amplitudes = collapsed
+                    measured = True
+                else:
+                    tryOp = r.randint(0, 2**num - 1)
+            else: 
+                prob = (la.norm(guide))**2
+                if r.random() <= prob:
+                    self.amplitudes = collapsed
+                    measured = True
+                else:
+                    tryOp = r.randint(0, 2**num - 1)
+
+    def generateLst(measureNum):
+        stringLst = ['0'*measureNum]
+        count = 1
+        while (count < 2**measureNum):
+            addedOne = False
+            prevString = stringLst[count - 1]
+            toAddString = ''
+            while (len(toAddString) < measureNum):
+                innerCount = len(toAddString)
+                if addedOne:
+                    prepend = prevString[:(measureNum - innerCount)]
+                    toAddString = prepend + toAddString
+                else:
+                    if prevString[measureNum - innerCount - 1] == '0':
+                        toAddString = '1' + toAddString
+                        addedOne = True
+                    else:
+                        toAddString = '0' + toAddString
+            stringLst.append(toAddString)
+            count += 1
+        return stringLst
