@@ -266,32 +266,32 @@ class Register(object):
                         if guide[index] == '0':
                             matrixLst.append(mops.plus())
                             index += 1
-                            final = final + '+'
+                            final = final + '|+>'
                         else: 
                             matrixLst.append(mops.minus())
                             index += 1
-                            final = final + '-'
+                            final = final + '|->'
                     elif qstr[i] == 'Y':
                         if guide[index] == '0':
                             matrixLst.append(mops.pos_y())
                             index += 1
-                            final = final + 'Y'
+                            final = final + '|Y>'
                         else:
                             matrixLst.append(mops.neg_y())
                             index += 1
-                            final = final + 'y'
+                            final = final + '|y>'
                     elif qstr[i] == 'Z':
                         if guide[index] == '0':
                             matrixLst.append(mops.zero())
                             index += 1
-                            final = final + '0'
+                            final = final + '|0>'
                         else:
                             matrixLst.append(mops.one())
                             index += 1
-                            final = final + '1'
+                            final = final + '|1>'
                     else:
                         matrixLst.append(g.eye(1))
-                        final = final + 'I'
+                        final = final + '|psi_' + str(i+1) + '>'
                 measureMatrix = g.produceMatrix(matrixLst)
                 collapsed = measureMatrix @ self.amplitudes
                 lst[tryOp] = (collapsed, final)
