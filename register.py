@@ -221,10 +221,39 @@ class Register(object):
         basis measurement, 'Y' is a measurement in the Y basis states,
         and 'I' is the identity (i.e. no measurement on that qubit).
         """
+    
+        def generateLst(measureNum):
+            """
+            Generates a list of strings, composed of '0' and '1' chars,
+            that represent all the permutations of MEASURENUM bits,
+            in binary number order. 
+            """
+            stringLst = ['0'*measureNum]
+            count = 1
+            while (count < 2**measureNum):
+                addedOne = False
+                prevString = stringLst[count - 1]
+                toAddString = ''
+                while (len(toAddString) < measureNum):
+                    innerCount = len(toAddString)
+                    if addedOne:
+                        prepend = prevString[:(measureNum - innerCount)]
+                        toAddString = prepend + toAddString
+                    else:
+                        if prevString[measureNum - innerCount - 1] == '0':
+                            toAddString = '1' + toAddString
+                            addedOne = True
+                        else:
+                            toAddString = '0' + toAddString
+                stringLst.append(toAddString)
+                count += 1
+            return stringLst
+        
         qstr = ''.join(qstr.split())
         qstr = qstr.upper()
         num = qstr.count('X') + qstr.count('Y') + qstr.count('Z')
         lst = generateLst(num)
+        final = ''
         tryOp = r.randint(0, 2**num - 1)
         measured = False
         while not measured:
@@ -237,62 +266,58 @@ class Register(object):
                         if guide[index] == '0':
                             matrixLst.append(mops.plus())
                             index += 1
+                            final = final + '+'
                         else: 
                             matrixLst.append(mops.minus())
                             index += 1
+                            final = final + '-'
                     elif qstr[i] == 'Y':
                         if guide[index] == '0':
                             matrixLst.append(mops.pos_y())
                             index += 1
+                            final = final + 'Y'
                         else:
                             matrixLst.append(mops.neg_y())
                             index += 1
+                            final = final + 'y'
                     elif qstr[i] == 'Z':
                         if guide[index] == '0':
                             matrixLst.append(mops.zero())
                             index += 1
+                            final = final + '0'
                         else:
                             matrixLst.append(mops.one())
                             index += 1
+                            final = final + '1'
                     else:
                         matrixLst.append(g.eye(1))
+                        final = final + 'I'
                 measureMatrix = g.produceMatrix(matrixLst)
                 collapsed = measureMatrix @ self.amplitudes
-                lst[tryOp] = collapsed
-                prob = (la.norm(collapsed))**2
-                if r.random() <= prob:
-                    for i in range(self.numQubits):
-                        collapsed[i] = collapsed[i] / prob
+                lst[tryOp] = (collapsed, final)
+                ampnorm = la.norm(collapsed)
+                prob = (ampnorm)**2
+                spinner = r.random()
+                if spinner <= prob:
+                    for i in range(2**self.numQubits):
+                        collapsed[i] = collapsed[i] / ampnorm
                     self.amplitudes = collapsed
                     measured = True
+                    print(final)
                 else:
                     tryOp = r.randint(0, 2**num - 1)
+                    final = ''
+
             else: 
-                prob = (la.norm(guide))**2
+                ampnorm = la.norm(guide[0])
+                prob = (ampnorm)**2
+                spinner = r.random()
                 if r.random() <= prob:
+                    for i in range(2**self.numQubits):
+                        collapsed[i] = collapsed[i] / ampnorm
                     self.amplitudes = collapsed
                     measured = True
+                    print(guide[1])
                 else:
                     tryOp = r.randint(0, 2**num - 1)
 
-    def generateLst(measureNum):
-        stringLst = ['0'*measureNum]
-        count = 1
-        while (count < 2**measureNum):
-            addedOne = False
-            prevString = stringLst[count - 1]
-            toAddString = ''
-            while (len(toAddString) < measureNum):
-                innerCount = len(toAddString)
-                if addedOne:
-                    prepend = prevString[:(measureNum - innerCount)]
-                    toAddString = prepend + toAddString
-                else:
-                    if prevString[measureNum - innerCount - 1] == '0':
-                        toAddString = '1' + toAddString
-                        addedOne = True
-                    else:
-                        toAddString = '0' + toAddString
-            stringLst.append(toAddString)
-            count += 1
-        return stringLst
