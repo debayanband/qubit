@@ -52,7 +52,7 @@ class Register(object):
             """
             q1 = lst[0]
             q2 = lst[1]
-            if q2 == q1 + 1:
+            if q2 == q1+1:
                 actions = [g.eye(1) for i in range(self.numQubits - 2)]
                 actions.insert(q1-1, func())
                 matrix = g.produceMatrix(actions)
@@ -319,3 +319,4 @@ class Register(object):
                     print(guide[1])
                 else:
                     tryOp = r.randint(0, 2**num - 1)
+                    
