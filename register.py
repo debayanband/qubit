@@ -213,7 +213,7 @@ class Register(object):
         else:
             raise ValueError('{} is not a supported gate.'.format(gate))
 
-    def measure(self, qstr):
+    def measure(self, qstr, lst = None, sampling = False):
         """ 
         QSTR is the string representing measurements to be done on each
         qubit. 'Z' is a standard basis measurement, 'X' is a Hadamard
@@ -251,7 +251,8 @@ class Register(object):
         qstr = ''.join(qstr.split())
         qstr = qstr.upper()
         num = qstr.count('X') + qstr.count('Y') + qstr.count('Z')
-        lst = generateLst(num)
+        if lst is None:
+            lst = generateLst(num)
         final = ''
         tryOp = r.randint(0, 2**num - 1)
         measured = False
@@ -297,12 +298,15 @@ class Register(object):
                 ampnorm = la.norm(collapsed)
                 prob = (ampnorm)**2
                 spinner = r.random()
+                print(collapsed)
                 if spinner <= prob:
                     for i in range(2**self.numQubits):
                         collapsed[i] = collapsed[i] / ampnorm
                     self.amplitudes = collapsed
                     measured = True
-                    print(final)
+                    if sampling:
+                        return final, lst
+                    return final
                 else:
                     tryOp = r.randint(0, 2**num - 1)
                     final = ''
@@ -316,7 +320,28 @@ class Register(object):
                         collapsed[i] = collapsed[i] / ampnorm
                     self.amplitudes = collapsed
                     measured = True
-                    print(guide[1])
+                    # print(guide[1])
+                    if sampling:
+                        return guide[1], lst
+                    return guide[1]
                 else:
                     tryOp = r.randint(0, 2**num - 1)
-                    
+
+    def sample(self, qstr, samples):
+        """
+        Like measuring, but does it SAMPLES amount of times.
+        Prints what result is measured how many times.
+        """
+        amps = self.amplitudes
+        results = {}
+        lst = None
+        for _ in range(samples):
+            result, lst = self.measure(qstr, lst, True)
+            self.amplitudes = amps
+            if result in results:
+                results[result] += 1
+            else:
+                results[result] = 1
+
+        for result in results:
+            print(f"We measured {result} {results[result]} times.")
