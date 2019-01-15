@@ -298,7 +298,6 @@ class Register(object):
                 ampnorm = la.norm(collapsed)
                 prob = (ampnorm)**2
                 spinner = r.random()
-                print(collapsed)
                 if spinner <= prob:
                     for i in range(2**self.numQubits):
                         collapsed[i] = collapsed[i] / ampnorm
@@ -312,7 +311,8 @@ class Register(object):
                     final = ''
 
             else: 
-                ampnorm = la.norm(guide[0])
+                collapsed = guide[0]
+                ampnorm = la.norm(collapsed)
                 prob = (ampnorm)**2
                 spinner = r.random()
                 if r.random() <= prob:
@@ -320,7 +320,6 @@ class Register(object):
                         collapsed[i] = collapsed[i] / ampnorm
                     self.amplitudes = collapsed
                     measured = True
-                    # print(guide[1])
                     if sampling:
                         return guide[1], lst
                     return guide[1]
