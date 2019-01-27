@@ -275,11 +275,11 @@ class Register(object):
                         if guide[index] == '0':
                             matrixLst.append(mops.pos_y())
                             index += 1
-                            final = final + '|Y>'
+                            final = final + '|i>'
                         else:
                             matrixLst.append(mops.neg_y())
                             index += 1
-                            final = final + '|y>'
+                            final = final + '|-i>'
                     elif qstr[i] == 'Z':
                         if guide[index] == '0':
                             matrixLst.append(mops.zero())
