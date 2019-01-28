@@ -6,7 +6,7 @@ import measurement_operators as mops
 
 class Register(object):
     
-    def __init__(self, num=6):
+    def __init__(self, num=8):
         """ Initializes a quantum register with NUM number of qubits. """
         self.numQubits = num
 
